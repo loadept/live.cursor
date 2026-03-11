@@ -19,17 +19,27 @@
       gap: 30px;
     }
 
+    header {
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      margin-top: 20px;
+    }
+
     #meta {
       display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin-top: 20px;
+      gap: 10px;
     }
 
     #draw-aria {
       width: 1500px;
       height: 800px;
       border: solid 1px #000;
+    }
+
+    input {
+      margin-right: 10px
     }
 
     .input-a {
@@ -44,11 +54,9 @@
       pointer-events: none;
     }
 
-    label {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
+    .input-c {
+      width: 100px;
+      outline: none;
     }
 
     #color {
@@ -60,30 +68,36 @@
 
 <body>
   <main>
-    <div id="meta">
-      <label>
-        X:
+    <header>
+      <div id="meta">
+        <label for="input-x">X:</label>
         <input type="text" class="input-a" id="input-x" />
-      </label>
-      <label>
-        Y:
+        <label for="input-y">Y:</label>
         <input type="text" class="input-a" id="input-y" />
-      </label>
-      <label>
-        cursor color:
+        <label for="color">cursor color:</label>
         <input type="color" class="input-a" id="color" />
-      </label>
-    </div>
+        <label for="label">label or username:</label>
+        <input type="text" class="input-c" id="label" maxlength="50" />
+      </div>
+      <div>
+        <a href="https://loadept.com/s/5M7p" target="_blank">source code</a>
+      </div>
+    </header>
     <canvas id="draw-aria"></canvas>
   </main>
 
   <script>
-  </script>
-
-  <script>
     let ws = null
-    const username = prompt("Insert name:") || "anonymous"
+
+    const label = document.getElementById("label")
     const color = document.getElementById("color")
+
+    let formattedLabel = (prompt("Enter name or message:") || "anonymous").substring(0, 50)
+    label.value = formattedLabel.trim()
+
+    label.addEventListener("change", () => {
+      formattedLabel = label.value.substring(0, 50)
+    })
 
     const canvas = document.getElementById("draw-aria")
     const ctx = canvas.getContext("2d")
@@ -100,7 +114,7 @@
       ctx.fill()
 
       ctx.fillStyle = "rgba(0, 0, 0, 0.6)"
-      ctx.font = "12px Inter, system-ui, sans-serif"
+      ctx.font = "12px Inter, system-ui, -apple-system, sans-serif"
       ctx.textAlign = "center"
       ctx.fillText(label, x, y - 15)
     }
@@ -114,10 +128,10 @@
 
         c.x += (c.targetX - c.x) * 0.15
         c.y += (c.targetY - c.y) * 0.15
-        drawCursor(c.x, c.y, c.username, c.color)
+        drawCursor(c.x, c.y, c.label, c.color)
       }
 
-      drawCursor(localCursor.x, localCursor.y, `${username} (me)`, color.value)
+      drawCursor(localCursor.x, localCursor.y, `${formattedLabel} (me)`, color.value)
       requestAnimationFrame(draw)
     }
     draw()
@@ -143,13 +157,13 @@
             y: payload.y,
             targetX: payload.x,
             targetY: payload.y,
-            username: payload.username,
+            label: payload.label,
             color: payload.color,
           }
         } else {
           remoteCursors[id].targetX = payload.x
           remoteCursors[id].targetY = payload.y
-          remoteCursors[id].username = payload.username
+          remoteCursors[id].label = payload.label
           remoteCursors[id].color = payload.color
         }
       }
@@ -176,7 +190,7 @@
 
       const data = {
         payload: {
-          username,
+          label: formattedLabel,
           timestamp: new Date().toISOString(),
           color: color.value,
           x,
