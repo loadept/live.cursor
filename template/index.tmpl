@@ -123,8 +123,14 @@
       ctx.fillStyle = "#f0f0f0"
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
+      const now = Date.now()
       for (let id in remoteCursors) {
         let c = remoteCursors[id]
+
+        if (now - c.lastSeen > 30000) {
+          delete remoteCursors[id]
+          continue
+        }
 
         c.x += (c.targetX - c.x) * 0.15
         c.y += (c.targetY - c.y) * 0.15
@@ -159,12 +165,14 @@
             targetY: payload.y,
             label: payload.label,
             color: payload.color,
+            lastSeen: Date.now(),
           }
         } else {
           remoteCursors[id].targetX = payload.x
           remoteCursors[id].targetY = payload.y
           remoteCursors[id].label = payload.label
           remoteCursors[id].color = payload.color
+          remoteCursors[id].lastSeen = Date.now()
         }
       }
 
