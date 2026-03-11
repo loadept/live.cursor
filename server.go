@@ -139,20 +139,23 @@ func (s *Server) wsHandler(w http.ResponseWriter, r *http.Request) {
 			s.mutex.Lock()
 			delete(s.clients, client)
 			s.mutex.Unlock()
-			client.Conn.Close()
 
-			event := &Event{Type: "disconnected", ConnID: client.ConnID}
-			s.events <- event
+			client.Conn.Close()
+			s.events <- &Event{Type: "disconnected", ConnID: client.ConnID}
 			break
 		}
 
 		var msg Message
 		if err := json.Unmarshal(message, &msg); err != nil {
+			errMsg := []byte(`{"detail": "malformed data, connection closed"}`)
+			client.Conn.WriteMessage(websocket.TextMessage, errMsg)
+
 			s.mutex.Lock()
 			delete(s.clients, client)
 			s.mutex.Unlock()
 
 			client.Conn.Close()
+			s.events <- &Event{Type: "disconnected", ConnID: client.ConnID}
 			break
 		}
 		msg.ConnID = client.ConnID
