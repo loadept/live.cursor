@@ -1,0 +1,198 @@
+<html>
+
+<head>
+  <title>{{.title}}</title>
+  <style>
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+    }
+
+    #meta {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    #draw-aria {
+      width: 1500px;
+      height: 800px;
+      border: solid 1px #000;
+    }
+
+    .input-a {
+      width: 50px;
+      outline: none;
+      pointer-events: none;
+    }
+
+    .input-b {
+      width: 80px;
+      outline: none;
+      pointer-events: none;
+    }
+
+    label {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #color {
+      outline: none;
+      border: none;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <div id="meta">
+      <label>
+        X:
+        <input type="text" class="input-a" id="input-x" />
+      </label>
+      <label>
+        Y:
+        <input type="text" class="input-a" id="input-y" />
+      </label>
+      <label>
+        cursor color:
+        <input type="color" class="input-a" id="color" />
+      </label>
+    </div>
+    <canvas id="draw-aria"></canvas>
+  </main>
+
+  <script>
+  </script>
+
+  <script>
+    let ws = null
+    const username = prompt("Insert name:") || "anonymous"
+    const color = document.getElementById("color")
+
+    const canvas = document.getElementById("draw-aria")
+    const ctx = canvas.getContext("2d")
+    canvas.width = canvas.clientWidth
+    canvas.height = canvas.clientHeight
+
+    let localCursor = {x: 0, y: 0}
+    const remoteCursors = {}
+
+    const drawCursor = (x, y, label, color) => {
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.arc(x, y, 10, 0, Math.PI * 2)
+      ctx.fill()
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.6)"
+      ctx.font = "12px Inter, system-ui, sans-serif"
+      ctx.textAlign = "center"
+      ctx.fillText(label, x, y - 15)
+    }
+
+    const draw = () => {
+      ctx.fillStyle = "#f0f0f0"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      for (let id in remoteCursors) {
+        let c = remoteCursors[id]
+
+        c.x += (c.targetX - c.x) * 0.15
+        c.y += (c.targetY - c.y) * 0.15
+        drawCursor(c.x, c.y, c.username, c.color)
+      }
+
+      drawCursor(localCursor.x, localCursor.y, `${username} (me)`, color.value)
+      requestAnimationFrame(draw)
+    }
+    draw()
+
+    const connect = () => {
+      ws = new WebSocket("/ws")
+
+      ws.onopen = () => console.info("connected to ws server")
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+        if (data.type === "disconnected") {
+          delete remoteCursors[data.conn_id]
+          return
+        }
+
+        const id = data.conn_id
+        const payload = data.payload
+
+        if (!remoteCursors[id]) {
+          remoteCursors[id] = {
+            x: payload.x,
+            y: payload.y,
+            targetX: payload.x,
+            targetY: payload.y,
+            username: payload.username,
+            color: payload.color,
+          }
+        } else {
+          remoteCursors[id].targetX = payload.x
+          remoteCursors[id].targetY = payload.y
+          remoteCursors[id].username = payload.username
+          remoteCursors[id].color = payload.color
+        }
+      }
+
+      ws.onclose = () => {
+        console.error("ws connection closed, retrying...")
+        Object.keys(remoteCursors).forEach(key => delete remoteCursors[key])
+        setTimeout(() => connect(), 3000)
+      }
+
+      ws.onerror = (error) => console.error("ws error:", error)
+    }
+    connect()
+
+    let lastSend = 0
+    const interval = 100
+    canvas.addEventListener("mousemove", (e) => {
+      const x = e.offsetX
+      const y = e.offsetY
+      document.getElementById("input-x").value = x
+      document.getElementById("input-y").value = y
+
+      localCursor = {x, y}
+
+      const data = {
+        payload: {
+          username,
+          timestamp: new Date().toISOString(),
+          color: color.value,
+          x,
+          y,
+        }
+      }
+
+      const now = Date.now()
+      if (now - lastSend > interval) {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify(data))
+        }
+        lastSend = now
+      }
+    })
+  </script>
+</body>
+
+</html>
