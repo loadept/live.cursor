@@ -64,10 +64,12 @@ func main() {
 	}
 
 	upgrader := &ws.Upgrader{
+		HandshakeTimeout: 10 * time.Second,
+		ReadBufferSize:   512,
+		WriteBufferSize:  512,
 		CheckOrigin: func(r *http.Request) bool {
 			origin := r.Header.Get("Origin")
-			return origin == "https://live.loadept.com" || origin == "https://loadept.com"
-			// return true
+			return origin == getEnv("ORIGIN", "http://localhost:8080")
 		},
 	}
 	wsServer := &Server{

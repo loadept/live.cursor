@@ -17,12 +17,12 @@ You can start the server using go or docker
 
 Using Go, you only need to do the following:
 ```bash
-ADDR=:8080 go run .
+ADDR=:8080 ORIGIN=http://localhost:8080 go run .
 ```
 
 Using Docker, you need to use the cursor-live image found in the GitHub Container Registry `ghcr.io`:
 ```bash
-docker run -dp 8080:8080 -e ADDR=:8080 ghcr.io/loadept/cursor-live
+docker run -dp 8080:8080 -e ORIGIN=http://localhost:8080 -e ADDR=:8080 ghcr.io/loadept/cursor-live
 ```
 
 - loadept
