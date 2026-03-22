@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.title}}</title>
+  <link href="/static/css/global.css" rel="stylesheet">
+</head>
+
+<body class="h-screen flex flex-col overflow-hidden bg-background text-foreground">
+  <div id="modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-background border border-border p-8 w-full max-w-md">
+      <h1 class="text-primary text-lg mb-2">[ live.cursor ]</h1>
+      <p class="text-muted-foreground text-xs mb-6">share your cursor with the world</p>
+      <input 
+        type="text" 
+        id="welcome-input" 
+        maxlength="50" 
+        placeholder="enter your label or name..." 
+        class="w-full bg-input border border-border px-4 py-3 text-foreground placeholder:text-muted-foreground mb-4 outline-none"
+        autofocus
+      />
+      <button id="start-btn" class="w-full bg-primary text-primary-foreground border border-border px-4 py-3 transition-opacity cursor-pointer">
+        start
+      </button>
+    </div>
+  </div>
+
+  <header class="px-5 py-6 top-0 flex items-center justify-around bg-background">
+    <div class="flex justify-center items-centet gap-6">
+      <input type="color" id="color" class="w-8 h-8 border border-border outline-none cursor-pointer" value="#d19a66" />
+      <input 
+        type="text" 
+        id="label" 
+        maxlength="50" 
+        placeholder="label or name..." 
+        class="w-60 h-8 bg-input border border-border outline-none px-4 py-2 text-foreground placeholder:text-muted-foreground"
+      />
+    </div>
+    <button id="theme-toggle" class="bg-background text-foreground w-9 h-9 flex items-center justify-center cursor-pointer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 hidden dark:block text-primary hover:text-accent">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2" />
+        <path d="M12 20v2" />
+        <path d="m4.93 4.93 1.41 1.41" />
+        <path d="m17.66 17.66 1.41 1.41" />
+        <path d="M2 12h2" />
+        <path d="M20 12h2" />
+        <path d="m6.34 17.66-1.41 1.41" />
+        <path d="m19.07 4.93-1.41 1.41" />
+      </svg>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 block dark:hidden text-primary hover:text-accent">
+        <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
+      </svg>
+    </button>
+  </header>
+
+  <main class="flex-1 flex flex-col px-14 bg-background">
+    <div class="flex-1 border border-border bg-background">
+      <canvas id="draw-area" class="w-full h-full"></canvas>
+    </div>
+  </main>
+
+  <footer class="px-10 py-8 flex items-center justify-between text-xs bg-background">
+    <p class="text-muted-foreground">move your cursor and share it with the world</p>
+    <a href="https://loadept.com/s/5M7p" target="_blank" class="outline-none text-primary hover:text-accent">Source Code</a>
+  </footer>
+
+  <div id="notifications" class="fixed top-5 right-5 flex flex-col gap-2 z-40" aria-live="polite"></div>
+
+  <script type="module" src="/static/js/init.js"></script>
+</body>
+</html>
