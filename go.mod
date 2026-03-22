@@ -1,4 +1,4 @@
-module github.com/loadept/cursor-live
+module github.com/loadept/live.cursor
 
 go 1.26.1
 

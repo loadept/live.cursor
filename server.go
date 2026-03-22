@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -50,9 +51,9 @@ type Server struct {
 	broadcast chan *Message
 }
 
-//go:embed template/index.tmpl
-var index embed.FS
-var tmpl = template.Must(template.ParseFS(index, "template/index.tmpl"))
+//go:embed web/template/* web/static/*
+var static embed.FS
+var tmpl = template.Must(template.ParseFS(static, "web/template/index.tmpl"))
 
 func main() {
 	log.SetFlags(0)
@@ -85,9 +86,13 @@ func main() {
 		close(wsServer.broadcast)
 	}()
 
+	sub, err := fs.Sub(static, "web/static")
+	fatalIfErr(err)
+
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(sub)))
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		data := map[string]any{
-			"title": "cursor live",
+			"title": "live.cursor",
 		}
 		if err := tmpl.Execute(w, data); err != nil {
 			http.Error(w, "internal error", http.StatusInternalServerError)
@@ -112,9 +117,7 @@ func main() {
 	defer cancel()
 
 	log.Println("shutdown server")
-	if err := httpServer.Shutdown(shutCtx); err != nil {
-		log.Fatal(err)
-	}
+	fatalIfErr(httpServer.Shutdown(shutCtx))
 }
 
 func getEnv(key, def string) string {
@@ -123,6 +126,12 @@ func getEnv(key, def string) string {
 		return def
 	}
 	return env
+}
+
+func fatalIfErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 var (
