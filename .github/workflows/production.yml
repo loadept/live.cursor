@@ -23,12 +23,12 @@ jobs:
       - name: Build and push
         run: |
           docker build \
-          -t ghcr.io/loadept/live-cursor:${{ github.sha }} \
-          -t ghcr.io/loadept/live-cursor:latest \
+          -t ghcr.io/loadept/live.cursor:${{ github.sha }} \
+          -t ghcr.io/loadept/live.cursor:latest \
           .
 
-          docker push ghcr.io/loadept/live-cursor:${{ github.sha }}
-          docker push ghcr.io/loadept/live-cursor:latest
+          docker push ghcr.io/loadept/live.cursor:${{ github.sha }}
+          docker push ghcr.io/loadept/live.cursor:latest
 
       - name: Deploy to server
         uses: appleboy/ssh-action@master
