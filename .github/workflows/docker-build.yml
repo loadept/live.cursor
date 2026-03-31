@@ -1,13 +1,18 @@
-name: Deploy project
+name: Build and Push Docker Image
 
 on:
   push:
     branches:
       - master
+    paths-ignore:
+      - README.md
+      - LICENSE
+      - AGENTS.md
+      - docs/**
+      - .gitignore
 
 jobs:
   deploy-on-server:
-    environment: production
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
@@ -23,21 +28,9 @@ jobs:
       - name: Build and push
         run: |
           docker build \
-          -t ghcr.io/loadept/live.cursor:${{ github.sha }} \
           -t ghcr.io/loadept/live.cursor:latest \
+          -t ghcr.io/loadept/live.cursor:${{ github.sha }} \
           .
 
-          docker push ghcr.io/loadept/live.cursor:${{ github.sha }}
           docker push ghcr.io/loadept/live.cursor:latest
-
-      - name: Deploy to server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
-          script: |
-            cd /srv/loadept
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
+          docker push ghcr.io/loadept/live.cursor:${{ github.sha }}
